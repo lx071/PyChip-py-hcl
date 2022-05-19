@@ -143,10 +143,8 @@ async def inject_values(time_period, in_intf, out_intf, wavefile):
         print()
         # values为字典{'信号':'值',...}--存放仿真时刻sim_time时各信号量的值
         values = data.get_values_at(sim_time)
-        # print(values)
 
         # 注入当前仿真时刻的信号与值
-        # injector.inject_values(values)
         input_data = [values['TOP.io_a'], values['TOP.io_b']]
         input_data = [int(k, base=2) for k in input_data]
         output_data = [values['TOP.io_c']]
@@ -180,7 +178,7 @@ def waveRead(wavefile):
     excluded_sigs = []
     inputs_only = False
     data = read_wave(wavefile, replay_block, inputs_only, excluded_sigs)  # VcdReader对象
-    print(data.signal_values)
+    # print(data.signal_values)
     return data
 
 
@@ -204,7 +202,7 @@ async def func(time_period):
 
     # await driver_task
     # await monitor_task
-    wavefile = "simulation/wave.vcd"
+    wavefile = "injector/wave.vcd"
     inject_task = asyncio.create_task(inject_values(time_period, i_intf, o_intf, wavefile))
     await inject_task
     await asyncio.sleep(1)
@@ -212,7 +210,7 @@ async def func(time_period):
 
 def main():
     # cfg = DpiConfig()
-    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Top.fir"))
+    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Add.fir"))
     # s = Simlite(Top(), dpiconfig=cfg, debug=True)
     # s.start()
     time_period = 0.1
@@ -223,7 +221,7 @@ def main():
 
 if __name__ == '__main__':
     # cfg = DpiConfig()
-    # # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Top.fir"))
+    # # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Add.fir"))
     # s = Simlite(Top(), dpiconfig=cfg, debug=True)
     # s.start()
     # s.step([20, 20])

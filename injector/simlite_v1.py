@@ -122,7 +122,7 @@ async def func(s, time_period):
 
 def main():
     cfg = DpiConfig()
-    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Top.fir"))
+    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Add.fir"))
     s = Simlite(Top(), dpiconfig=cfg, debug=True)
     s.start()
     time_period = 0.1
@@ -133,7 +133,7 @@ def main():
 
 if __name__ == '__main__':
     cfg = DpiConfig()
-    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Top.fir"))
+    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Add.fir"))
     s = Simlite(Top(), dpiconfig=cfg, debug=True)
     s.start()
     s.step([20, 20])

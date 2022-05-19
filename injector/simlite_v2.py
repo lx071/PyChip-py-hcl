@@ -1,6 +1,6 @@
 from pyhcl import *
 from pysv import sv, DataType, Reference
-from pyhcl.simulator import Simlite, DpiConfig
+from pyhcl.simulator.simlite import Simlite, DpiConfig
 from queue import Queue
 import asyncio
 
@@ -150,7 +150,7 @@ async def func(s, time_period):
 
 def main():
     cfg = DpiConfig()
-    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Top.fir"))
+    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Add.fir"))
     s = Simlite(Top(), dpiconfig=cfg, debug=True)
     s.start()
     time_period = 0.1
@@ -161,11 +161,12 @@ def main():
 
 if __name__ == '__main__':
     cfg = DpiConfig()
-    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Top.fir"))
+    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Add.fir"))
     s = Simlite(Top(), dpiconfig=cfg, debug=True)
     s.start()
     s.step([20, 20])
     s.step([15, 10])
     s.step([1000, 1])
     s.step([999, 201])
+    s.stop()
     s.close()
