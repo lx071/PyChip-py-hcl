@@ -70,7 +70,7 @@ def generateInput(data):
     pass
 
 
-if __name__ == '__main__':
+def main():
     print("begin")
     replay_block = []
     # wavefile = "../simulation/wave.vcd"
@@ -85,4 +85,8 @@ if __name__ == '__main__':
     print("XXX")
     generateInput(data)
     print("YYY")
+
+
+if __name__ == '__main__':
+    main()
 

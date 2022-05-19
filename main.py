@@ -57,5 +57,7 @@ def main():
     #Emitter.dumpVerilog(f)
 
 
+from injector import reader
+
 if __name__ == '__main__':
-    main()
+    reader.main()
