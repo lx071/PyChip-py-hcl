@@ -365,12 +365,12 @@ void output_handler(){{
 int main(int argc, char** argv, char** env) {{
     Verilated::commandArgs(argc, argv);
     ioinit();
-
+    
     V{modname}* top = new V{modname};
-
+    
     Verilated::internalsDump();  // See scopes to help debug
     Verilated::traceEverOn(true);
-
+    
     VerilatedVcdC* tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
     tfp->open("wave.vcd");
@@ -417,6 +417,6 @@ int main(int argc, char** argv, char** env) {{
         taps = "        "
         i = 0
         for n in self.outputs:
-            res += taps + f"outputs[{i}] = top->io_{n};\n"  # 对输出端口进行取值
+            res += taps + f"outputs[{i}] = top->io_{n};\n"      # 对输出端口进行取值
             i += 1
         return res

@@ -218,7 +218,7 @@ class Simlite(object):
             # verilator --cc {dut_name}.v --trace --exe {dut_name}-harness.cpp
             print("verilator --cc {vfn} --trace --exe {hfn}".format(vfn=vfn, hfn=hfn))
             os.system(
-                "verilator --cc {vfn} --trace --exe {hfn}".format(vfn=vfn, hfn=hfn))
+                "verilator --prof-cfuncs -CFLAGS -DVL_DEBUG --cc {vfn} --trace --exe {hfn}".format(vfn=vfn, hfn=hfn))
 
         # make -j -C ./obj_dir -f V{dut_name}.mk V{dut_name}
         os.system(
@@ -249,6 +249,7 @@ class Simlite(object):
             args = [f"./obj_dir/{self.efn}"]        # ./obj_dir/V{dut_name}
             infile = open(ifn, "r")
             outfile = open(ofn, "w")
+            print("XXX")
             # subprocess 模块允许我们启动一个新进程，并连接到它们的输入/输出/错误管道，从而获取返回值。
             # Popen 是 subprocess的核心，子进程的创建和管理都靠它处理
             # args：shell命令，可以是字符串或者序列类型（如：list，元组）
@@ -329,6 +330,36 @@ class Simlite(object):
         self.cnt += 1
         return res
 
+    # 传入输入端口值
+    def stepp(self, strr):
+        # 每一步存入steps列表
+        instr = strr.encode(encoding="utf-8")
+
+        # 将输入端口值--str写入子进程的标准输入stdin缓冲区--传入inputs数组
+        self.p.stdin.write(instr)
+        # 刷新stdin缓冲区, 即将缓冲区中的数据立刻写入
+        self.p.stdin.flush()
+        # 读取子进程的标准输出stdout里的内容--即outputs数组的值
+        line = self.p.stdout.readline()
+        # 刷新stdout缓冲区
+        self.p.stdout.flush()
+
+        # 从outputs数组中读取的结果--输出端口值
+        self.raw_res = str(line, encoding="utf-8").strip()
+        strs = self.raw_res.split(" ")
+
+        # 结果列表
+        res = [int(x) for x in strs]
+        self.results = res
+
+        # debug模式
+        if self.debug:
+            self.pprint()
+
+        # 计数器值加一
+        self.cnt += 1
+        return res
+
     # 输出仿真相关值--输入端口值、输出端口值
     def pprint(self):
         print("")
@@ -348,6 +379,10 @@ class Simlite(object):
 #include <vector>
 #include <iostream>
 #include <cstdio>
+#include <string>
+#include <sstream>
+#include <ctime>
+using namespace std;
 
 vluint64_t main_time = 0;   // See comments in first example
 const vluint64_t sim_time = 1024;
@@ -357,13 +392,22 @@ std::vector<unsigned long long> inputs, outputs;
 
 #define INN {innum}
 #define OUTN {outnum}
+
 int status = 0;
+std::vector<string> inputs_s;
+
+void s2l(string &s, unsigned long long &l){{
+    stringstream ss;
+    ss<<s;
+    ss>>l;    
+}}
 
 void ioinit(){{
     setvbuf(stdout,0,_IONBF, 0);
     setvbuf(stdin,0,_IONBF, 0);
     setvbuf(stderr,0,_IONBF, 0);
     inputs.resize(INN);
+    inputs_s.resize(INN);
     outputs.resize(OUTN);
     return;
 }}
@@ -373,7 +417,7 @@ void input_handler(){{
     if(status==-1)
         return;
     for(int i = 0; i < INN; i++){{
-        std::cin>>inputs[i];
+        std::cin>>inputs_s[i];
     }}
     return;
 }}
@@ -391,14 +435,19 @@ int main(int argc, char** argv, char** env) {{
     ioinit();
     
     V{modname}* top = new V{modname};
-    
+
     Verilated::internalsDump();  // See scopes to help debug
     Verilated::traceEverOn(true);
-    
+
     VerilatedVcdC* tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
     tfp->open("wave.vcd");
 
+    //long t1 = GetTickCount();
+    time_t beginTime = time(NULL);
+
+    
+    
     while (!Verilated::gotFinish()) {{
         input_handler();
         if(status==-1) break;
@@ -411,6 +460,11 @@ int main(int argc, char** argv, char** env) {{
         output_handler();
         main_time++;
     }}
+    
+    time_t endTime = time(NULL);
+    int32_t diff = endTime - beginTime;
+    std::cout<<difftime(endTime, beginTime);
+    
     top->final();
     tfp->close();
     delete top;
@@ -422,10 +476,16 @@ int main(int argc, char** argv, char** env) {{
     # 处理input端口，得到对应的harness代码  # 用inputs数组对输入端口进行赋值
     def handle_inputs(self):
         res = ""
-        taps = "        "
         i = 0
+        # 对输入端口进行赋值
         for n in self.inputs:
-            res += taps + f"top->{n} = inputs[{i}];\n"       # 对输入端口进行赋值
+            str = f"""
+        if(inputs_s[{i}]!="z"){{
+            s2l(inputs_s[{i}], inputs[{i}]);
+            top->{n} = inputs[{i}];          
+        }}
+            """
+            res += str
             i += 1
         return res
 
@@ -435,6 +495,6 @@ int main(int argc, char** argv, char** env) {{
         taps = "        "
         i = 0
         for n in self.outputs:
-            res += taps + f"outputs[{i}] = top->{n};\n"      # 对输出端口进行取值
+            res += taps + f"outputs[{i}] = top->{n};\n"  # 对输出端口进行取值
             i += 1
         return res
