@@ -1,9 +1,12 @@
+# 未实现，传入firrtl代码
+
 import os
 import subprocess
 
 from pyhcl import *
 from ..simulator import DpiConfig
 import re
+
 
 class Simlite(object):
     # init for fork method
