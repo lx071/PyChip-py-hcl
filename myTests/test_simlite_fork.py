@@ -1,5 +1,5 @@
 from pyhcl import *
-from pyhcl.simulator import Simlite
+from pyhcl.simulator.simlite import Simlite
 import random
 
 

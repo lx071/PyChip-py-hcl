@@ -1,3 +1,5 @@
+import time
+
 from pyhcl.simulator.simlite_verilog import Simlite
 import random
 
@@ -5,15 +7,14 @@ import random
 # 每次给输入端口赋值, 跑一个时间单位
 def test_step(s):
     s.start()
-    s.step([0, 0, 20, 20])
-    print("cnt: %d\t\tresult:%s" % (s.cnt, s.getRes()))
-    s.step([1, 0, 15, 10])
-    print("cnt: %d\t\tresult:%s" % (s.cnt, s.getRes()))
-    s.step([0, 0, 1000, 1])
-    print("cnt: %d\t\tresult:%s" % (s.cnt, s.getRes()))
-    s.step([1, 0, 999, 201])
-    print("cnt: %d\t\tresult:%s" % (s.cnt, s.getRes()))
-    s.stop()
+    with open('../injector/tmp/tinyalu_inputs', 'r') as f:
+        file = f.readlines()
+    begin = time.time()
+    for i in range(len(file)):
+        s.stepp(file[i])
+
+    end = time.time()
+    print('time:', end - begin)
 
 
 def test_task(s):
@@ -37,21 +38,29 @@ def randomInput(ifn):
 
 
 def test_file(s):
-    ifn = f"../myTests/tmp/Top_inputs"
-    ofn = f"../myTests/tmp/Top_outputs"
-    randomInput(ifn)
+    ifn = f"../injector/tmp/tinyalu_inputs"
+    ofn = f"../myTests/tmp/outputs"
+    begin = time.time()
     s.start(mode="task", ofn=ofn, ifn=ifn)
+    end = time.time()
+    print('time: ', end-begin)
     pass
 
 
 def main():
-    top_module_name = 'Top.v'
+    # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Add.fir"))
+    top_module_name = 'tinyalu.sv'
     dut_path = 'myTests/tmp/dut/'
-    s = Simlite(top_module_name, dut_path, debug=True)
+    s = Simlite(top_module_name, dut_path)
 
-    # test_step(s)
+    # with open('myTests/tmp/tinyalu_harness.cpp', 'r') as f:
+    #     code = ''.join(f.readlines())
+    #
+    # s = Simlite(top_module_name, dut_path, debug=True, harness_code=code)
+
+    test_step(s)
     # test_task(s)
-    test_file(s)
+    # test_file(s)
 
     s.close()
 

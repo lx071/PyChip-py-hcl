@@ -1,6 +1,6 @@
 from pyhcl import *
 from pysv import sv, DataType, Reference
-from pyhcl.simulator import Simlite, DpiConfig
+from pyhcl.simulator.simlite import Simlite, DpiConfig
 import random
 
 

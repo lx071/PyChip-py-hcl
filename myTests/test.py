@@ -92,16 +92,188 @@ def verilog_parse(dut_path, top_module_name):
                     input_ports_name.append(input_port.group(3))
                 if output_port:
                     output_ports_name.append(output_port.group(3))
-    # print(dut_name)
-    # print(input_ports_name)
-    # print(output_ports_name)
+    print(dut_name)
+    print(input_ports_name)
+    print(output_ports_name)
     return input_ports_name, output_ports_name
 
 
-if __name__ == '__main__':
+def handle_inputs(inputs):
+    res = ""
+    i = 0
+    # 对输入端口进行赋值
+    for n in inputs:
+        str = f"""
+    if(inputs_s[{i}]!="z"){{
+        s2l(inputs_s[{i}], inputs[{i}]);
+        top->io_{n} = inputs[{i}];          
+    }}\n
+        """
+        res += str
 
-    # verilog_parse('./tmp/dut/', 'Top.v')
-    verilog_parse('../simulation/', 'M.v')
+        i += 1
+    return res
+
+
+def generateInput():
+
+    str_0 = '''#include "Vtinyalu.h"
+#include "verilated.h"
+#include "verilated_vcd_c.h"
+#include <vector>
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <sstream>
+#include <ctime>
+using namespace std;
+
+
+void s2l(string &s, unsigned long long &l){
+    stringstream ss;
+    ss<<s;
+    ss>>l;    
+}
+
+int main(int argc, char** argv, char** env) {
+    Verilated::commandArgs(argc, argv);
+    
+    Vtinyalu* top = new Vtinyalu;
+
+    Verilated::internalsDump();  // See scopes to help debug
+    Verilated::traceEverOn(true);
+
+    VerilatedVcdC* tfp = new VerilatedVcdC;
+    top->trace(tfp, 99);
+    tfp->open("wave.vcd");
+
+    //long t1 = GetTickCount();
+    time_t beginTime = time(NULL);
+
+
+
+    top->clk = 0;          
+    top->A = 0;          
+    top->B = 0;          
+    top->op = 0;          
+    top->reset_n = 1;          
+
+    top->eval();
+            
+    top->clk = 1;          
+    top->A = 0;          
+    top->B = 0;          
+    top->op = 0;          
+    top->reset_n = 1;          
+    top->start = 0;
+    
+    top->eval();
+'''
+    str_1 = '''
+    top->clk = 0;          
+    top->A = 170;          
+    top->B = 85;          
+    top->op = 1;          
+    top->reset_n = 1;          
+    top->start = 1;
+    
+    top->eval();
+    std::cout<<top->result<<endl;
+        '''
+    str_2 = '''
+    top->clk = 1;          
+    top->A = 170;          
+    top->B = 85;          
+    top->op = 1;          
+    top->reset_n = 1;          
+    top->start = 1;
+    
+    top->eval();
+    std::cout<<top->result<<endl;
+    '''
+    str_3 = '''
+    top->clk = 0;          
+    top->A = 170;          
+    top->B = 85;          
+    top->op = 1;          
+    top->reset_n = 1;          
+    top->start = 0;
+
+    top->eval();
+    std::cout<<top->result<<endl;
+        '''
+    str_4 = '''
+    top->clk = 1;          
+    top->A = 170;          
+    top->B = 85;          
+    top->op = 1;          
+    top->reset_n = 1;          
+    top->start = 0;
+
+    top->eval();
+    std::cout<<top->result<<endl;
+        '''
+    str_i = str_1 + str_2 + (str_3 + str_4) * 4
+
+    str_end = '''
+    
+    std::cout<<top->result<<endl;
+    time_t endTime = time(NULL);
+    int32_t diff = endTime - beginTime;
+    std::cout<<difftime(endTime, beginTime)<<endl;
+    std::cout<<diff;
+    
+    top->final();
+    tfp->close();
+    delete top;
+    return 0;
+}
+    '''
+    str = str_0 + str_i * 5000 + str_end
+    ifn = f"./tmp/tinyalu_harness.cpp"
+    fd = open(ifn, "w")
+    fd.write(str)
+
+
+if __name__ == '__main__':
+    li = ['mcdt.ch0_data_i',
+     'mcdt.ch0_valid_i',
+
+     'mcdt.ch1_data_i',
+     'mcdt.ch1_valid_i',
+
+     'mcdt.ch2_data_i',
+     'mcdt.ch2_valid_i',
+
+     'mcdt.clk_i',
+     'mcdt.rstn_i',
+
+     'mcdt.mcdt_val_o',
+     'mcdt.mcdt_id_o',
+     'mcdt.mcdt_data_o',
+
+     'mcdt.ch2_ready_o',
+     'mcdt.ch2_margin_o',
+
+     'mcdt.ch1_ready_o',
+     'mcdt.ch1_margin_o',
+
+     'mcdt.ch0_ready_o',
+     'mcdt.ch0_margin_o']
+    print(li)
+    # with open('../injector/reader.py', 'r') as f:
+    #     file = f.readlines()
+    # for i in range(len(file)):
+    #     print(file[i])
+    # print('xx')
+    # verilog_parse('./tmp/dut/', 'tinyalu.sv')
+    # verilog_parse('../simulation/', 'M.v')
     # firrtl_parse('./tmp/firrtl/M.fir')
+    # res = handle_inputs(['A', 'B', 'C'])
+    # print(res)
+    # pass
+
+    # generateInput()
+
 
 

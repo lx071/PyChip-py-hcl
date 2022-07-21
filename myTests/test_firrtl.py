@@ -1,6 +1,6 @@
 from pyhcl import *
 from pyhcl.util.firrtltools import addfirrtlmodule
-from pyhcl.simulator import Simlite
+from pyhcl.simulator.simlite import Simlite
 import random
 
 
