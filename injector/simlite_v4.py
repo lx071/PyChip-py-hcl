@@ -1,6 +1,7 @@
 # from pyhcl import *
 # from pysv import sv, DataType, Reference
 # from pyhcl.simulator import Simlite, DpiConfig
+import time
 from queue import Queue
 import asyncio
 from injector.reader import read_wave
@@ -137,13 +138,18 @@ class checker:
 
 
 async def inject_values(time_period, in_intf, out_intf, wavefile):
+    begin0 = time.time()
     data = waveRead(wavefile)
+    begin = time.time()
     sim_time = 0
+    alltime = 0
     while True:
         print()
+        time1 = time.time()
         # values为字典{'信号':'值',...}--存放仿真时刻sim_time时各信号量的值
         values = data.get_values_at(sim_time)
 
+        time2 = time.time()
         # 注入当前仿真时刻的信号与值
         input_data = [values['TOP.io_a'], values['TOP.io_b']]
         input_data = [int(k, base=2) for k in input_data]
@@ -153,8 +159,15 @@ async def inject_values(time_period, in_intf, out_intf, wavefile):
         out_intf.output_data = output_data
         print("inject input_data %s and output_data %s" % (input_data, output_data))
 
+        time3 = time.time()
+
         await asyncio.sleep(time_period)
 
+        time4 = time.time()
+        print(time2-time1)
+        print(time3-time2)
+        alltime = alltime + time3 - time1
+        print(time4-time3)
         previous_time = sim_time
         # 得到仿真时刻sim_time后的一个变化时刻，若无则返回None
         sim_time = data.get_next_event(sim_time)
@@ -162,6 +175,10 @@ async def inject_values(time_period, in_intf, out_intf, wavefile):
         if sim_time is None:
             break
         # await Timer(sim_time - previous_time)
+    print('alltime: ', alltime)
+    end = time.time()
+    print('read time:', begin-begin0)
+    print('inject time:', end-begin)
 
     # for i in range(3):
     #     input_data = [15 + i, 10 + i]
@@ -174,11 +191,12 @@ async def inject_values(time_period, in_intf, out_intf, wavefile):
 
 
 def waveRead(wavefile):
+    # ['TOP.clock', 'TOP.io_a', 'TOP.io_b', 'TOP.io_c', 'TOP.reset', 'TOP.Top.add_in1', 'TOP.Top.add_in2', 'TOP.Top.add_out', 'TOP.Top.clock', 'TOP.Top.io_a', 'TOP.Top.io_b', 'TOP.Top.io_c', 'TOP.Top.reset', 'TOP.Top.add.in1', 'TOP.Top.add.in2', 'TOP.Top.add.out']
     replay_block = []
-    excluded_sigs = []
+    excluded_sigs = ['TOP.clock', 'TOP.reset', 'TOP.Top.add_in1', 'TOP.Top.add_in2', 'TOP.Top.add_out', 'TOP.Top.clock', 'TOP.Top.io_a', 'TOP.Top.io_b', 'TOP.Top.io_c', 'TOP.Top.reset', 'TOP.Top.add.in1', 'TOP.Top.add.in2', 'TOP.Top.add.out']
     inputs_only = False
     data = read_wave(wavefile, replay_block, inputs_only, excluded_sigs)  # VcdReader对象
-    # print(data.signal_values)
+    # print(data.signal_values.keys())
     return data
 
 
@@ -202,10 +220,17 @@ async def func(time_period):
 
     # await driver_task
     # await monitor_task
+    begin = time.time()
+
     wavefile = "injector/wave.vcd"
     inject_task = asyncio.create_task(inject_values(time_period, i_intf, o_intf, wavefile))
     await inject_task
+
+    end = time.time()
+    print('time: ', end - begin)
+
     await asyncio.sleep(1)
+
 
 
 def main():
@@ -213,7 +238,7 @@ def main():
     # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Add.fir"))
     # s = Simlite(Top(), dpiconfig=cfg, debug=True)
     # s.start()
-    time_period = 0.1
+    time_period = 0.01
     asyncio.run(func(time_period))
 
     # s.close()

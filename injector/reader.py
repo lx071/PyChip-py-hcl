@@ -71,7 +71,6 @@ def generateInput(data):
 
 
 def main():
-    print("begin")
     replay_block = []
     # wavefile = "../simulation/wave.vcd"
     # wavefile = "./mcdt.vcd"
@@ -82,11 +81,56 @@ def main():
     # print(data.sig_name_2_vcd_name)
     # print(data.vcd_name_2_sig_name)
     # print(data.signal_values)
-    print("XXX")
     generateInput(data)
-    print("YYY")
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    ifn = f"./tmp/tinyalu_inputs"
+    fd = open(ifn, "w")
+    str1 = '''0 1 z z z z z
+0 0 0 0 0 0 z
+0 1 0 0 0 0 z
+0 0 0 0 0 1 z
+0 1 0 0 0 1 z
+0 0 0 0 0 1 0
+0 1 0 0 0 1 0
+0 0 0 0 0 1 0
+0 1 0 0 0 1 0
+0 0 170 85 1 1 1
+0 1 170 85 1 1 1
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+0 0 170 85 1 1 1
+0 1 170 85 1 1 1
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+'''
 
+    str2 = '''0 0 170 85 1 1 1
+0 1 170 85 1 1 1
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+0 0 170 85 1 1 0
+0 1 170 85 1 1 0
+'''
+    fd.write(str1)
+    # 27+1000000    1ms 33
+    for i in range(100000):
+        fd.write(str2)
+    fd.write('-1\n')
+    fd.close()

@@ -1,3 +1,5 @@
+import time
+
 from pyhcl import *
 from pysv import sv, DataType, Reference
 from pyhcl.simulator.simlite import Simlite, DpiConfig
@@ -56,11 +58,17 @@ class driver:
         self.time_period = time_period
 
     async def run(self):
-        for i in range(3):
+        alltime = 0
+        for i in range(10000):
+            time1 = time.time()
             input_data = [15 + i, 10 + i]
             self.simlite.step(input_data)
+            time2 = time.time()
             print("%s drivered data %s" % (self.name, input_data))
+            print(time2-time1)
+            alltime = alltime + time2 - time1
             await asyncio.sleep(self.time_period)
+        print('alltime: ', alltime)
 
 
 class in_monitor:
@@ -131,6 +139,8 @@ class checker:
 
 
 async def func(s, time_period):
+    begin = time.time()
+
     driver1 = driver("driver", s, time_period)
     i_monitor = in_monitor("in_monitor", s, time_period)
     o_monitor = out_monitor("out_monitor", s, time_period)
@@ -145,7 +155,10 @@ async def func(s, time_period):
 
     await driver_task
     # await monitor_task
-    await asyncio.sleep(1)
+
+    end = time.time()
+    print(end-begin)
+    # await asyncio.sleep(1)
 
 
 def main():
@@ -153,9 +166,9 @@ def main():
     # Emitter.dumpVerilog(Emitter.dump(Emitter.emit(Top()), "Add.fir"))
     s = Simlite(Top(), dpiconfig=cfg, debug=True)
     s.start()
-    time_period = 0.1
+    time_period = 0.01
     asyncio.run(func(s, time_period))
-
+    s.stop()
     s.close()
 
 
